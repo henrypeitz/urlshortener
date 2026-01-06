@@ -1,6 +1,6 @@
 const form = document.getElementById('shortener_form')
 
-form.addEventListener('submit', function(e) {
+form.addEventListener('submit', async function(e) {
 
     e.preventDefault();
 
@@ -8,7 +8,7 @@ form.addEventListener('submit', function(e) {
     urlInput = urlInput.value 
 
     const data = {
-        urlInput: urlInput
+        url_input: urlInput
     }
 
     if(urlInput === "" || urlInput == null) {
@@ -16,21 +16,23 @@ form.addEventListener('submit', function(e) {
         return;
     }
 
-    const res = fetch('http://127.0.0.1:8000/shorten', {
+    const res = await fetch('http://localhost:8000/shorten', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     }).catch(error => {
+        console.log(error)
         console.log("Something went very wrong...")
     })
 
-    if(!res.ok) {
-        alert("Something went wrong!")
-        return;
-    } else {
-        console.log("Everything went great in this shit!")
+    if(res.status === 400) {
+        console.log("Your URL seems invalid.")
     }
 
+    let resData = await res.json()
+    console.log(resData)
+    alert(`Your shorten URL is: http://localhost:8000/shorten/${resData}`)
+    
 })
