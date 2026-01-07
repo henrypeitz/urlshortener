@@ -1,12 +1,15 @@
-from typing import Union
 from fastapi import FastAPI, Response, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.exceptions import HTTPException
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from pydantic import BaseModel
+from contextlib import asynccontextmanager
+
 from services import create_hashed_url
 from database import get_db_connect, init_db
 from models import saveIntoDb, lookIntoDb
-from contextlib import asynccontextmanager
 
 import validators
 
@@ -29,7 +32,6 @@ app.add_middleware(
 class shortenRequest(BaseModel):
     url_input: str
 
-app = FastAPI(lifespan=lifespan)
 @app.post("/shorten", status_code=201)
 async def read_root(item: shortenRequest, response: Response, db = Depends(get_db_connect)):
     user_url = item.url_input
@@ -47,7 +49,10 @@ async def read_root(item: shortenRequest, response: Response, db = Depends(get_d
         saved = await saveIntoDb(user_url, hash, db)
 
         if saved:
-            return saved.found_link
+            if saved.status_code == 200:
+                response.status_code = status.HTTP_200_OK
+
+            return saved.found_hash
 
         return hash
 
@@ -59,4 +64,11 @@ async def read_url(url_id: str, response: Response, db = Depends(get_db_connect)
     if link:
         return RedirectResponse(url=link, status_code=307)
     else:
-        return {"Error": 404}
+        response.status_code = status.HTTP_404_NOT_FOUND
+        raise StarletteHTTPException(status_code=404)    
+    
+@app.exception_handler(StarletteHTTPException)
+async def custom_404_handler(request, exc):
+    print(exc)
+    if exc.status_code == 404:
+        return RedirectResponse(url='http://localhost:5173/404.html', status_code=307)

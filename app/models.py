@@ -3,7 +3,8 @@ from dataclasses import dataclass
 
 @dataclass
 class SaveResult:
-    found_link: str
+    found_hash: str
+    status_code: int=200
 
 async def saveIntoDb(original: str, hashed: str, conn):
 
@@ -18,7 +19,8 @@ async def saveIntoDb(original: str, hashed: str, conn):
         if(e.errno == 1062):
             res = await lookForExisting(hashed, conn)
             if res:
-                return SaveResult(found_link=res)
+                print(hashed)
+                return SaveResult(found_hash=hashed, status_code=200)
         else:
             print(f"Error saving to DB: {e}")
             conn.rollback()
@@ -41,7 +43,7 @@ async def lookIntoDb(url: str, conn):
 async def lookForExisting(url: str, conn):
 
     cursor = conn.cursor()
-    sql = "SELECT newurl FROM users_urls WHERE original_url = %s"
+    sql = "SELECT original_url FROM users_urls WHERE newurl = %s"
 
     q = cursor.execute(sql, (url,))
     result = cursor.fetchone()
