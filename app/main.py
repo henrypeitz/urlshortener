@@ -7,9 +7,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 
-from services import create_hashed_url
-from database import get_db_connect, init_db
-from models import saveIntoDb, lookIntoDb
+from app.services.url_service import create_hashed_url
+from app.core.database import get_db_connect, init_db
+from app.repo.url_repository import saveIntoDb, lookIntoDb
 
 import validators
 
