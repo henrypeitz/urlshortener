@@ -1,33 +1,61 @@
-const form = document.getElementById('shortener_form')
+const form = document.getElementById("shortener_form");
 
-form.addEventListener('submit', async function(e) {
+form.addEventListener("submit", async function (e) {
+  e.preventDefault();
 
-    e.preventDefault();
+  let urlInput = document.getElementById("url");
+  let sizeInput = document.getElementById("size");
+  let errorMsg = document.getElementById("error-message");
+  let successMsg = document.getElementById("success-message");
 
-    let urlInput = document.getElementById('url');
-    urlInput = urlInput.value 
+  errorMsg.style.display = "none";
+  successMsg.style.display = "none";
+  errorMsg.innerText = "";
+  successMsg.innerHTML = "";
 
-    const data = {
-        url_input: urlInput
+  let sizeForm = 8;
+
+  if (sizeInput.value.trim() == "") {
+    sizeForm = 8;
+  } else {
+    sizeForm = parseInt(sizeInput.value);
+  }
+
+  let data = {
+    url_input: urlInput.value,
+    size_input: sizeForm
+  };
+
+  try {
+    const res = await fetch("/api/shorten", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    const resData = await res.json();
+
+    if (!res.ok) {
+      errorMsg.innerText = resData.detail || "An unknown error has occurred.";
+      errorMsg.style.display = "block";
+      return;
     }
 
-    if(urlInput === "" || urlInput == null) {
-        alert("Invalid URL")
-        return;
-    }
+    const shortUrl = `${window.location.origin}/api/shorten/${resData.hash}`;
 
-    const res = await fetch('http://localhost:8000/shorten', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    }).catch(error => {
-        console.log(error)
-        console.log("Something went very wrong...")
-    })
-
-    let resData = await res.json()
-    alert(`Your shorten URL is: http://localhost:8000/shorten/${resData}`)
-    
-})
+    successMsg.innerHTML = `
+      Your shortened URL is:
+      <a style="color: white" href="${shortUrl}" target="_blank">
+        ${shortUrl}
+      </a>
+    `;
+    successMsg.style.display = "block";
+    urlInput.value = "";
+  } catch (err) {
+    errorMsg.innerText = "Couldn't connect to the server.";
+    errorMsg.style.display = "block";
+    console.error(err);
+  }
+});

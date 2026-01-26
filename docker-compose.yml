@@ -1,0 +1,18 @@
+services:
+  mysql_knex:
+    image: mysql:8.0
+    container_name: mysql_shortener
+    restart: always
+    environment:
+      MYSQL_DATABASE: urls
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpassword
+      TZ: America/Sao_Paulo
+    ports:
+      - 3306:3306
+    volumes:
+      - mysql_db:/var/lib/mysql
+
+volumes:
+  mysql_db:

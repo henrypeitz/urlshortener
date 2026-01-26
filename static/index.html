@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="title">
+      <h1>Shorten your URLs easy and fast.</h1>
+      <h3 class="subtitle">
+        Soon your last 5 shortened URLs will (probably) be here.
+      </h3>
+    </div>
+    <form id="shortener_form" method="post">
+      <input
+        required
+        class="input-text"
+        type="text"
+        id="url"
+        name="url_input"
+        placeholder="www.longurl.com/this-is-very-long"
+      />
+      <input
+        class="input-text"
+        type="number"
+        id="size"
+        name="size_input"
+        max="16"
+        min="3"
+        placeholder="What size do you want for your link? (default: 8)"
+      />
+      <br />
+      <input class="submit-button" type="submit" value="Shorten URL" />
+
+      <p id="error-message" style="color: red; display: none"></p>
+      <div id="success-message" style="color: white; display: none"></div>
+    </form>
+    <script type="module" src="./scripts.js"></script>
+  </body>
+</html>

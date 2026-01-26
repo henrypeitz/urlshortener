@@ -1,54 +1,59 @@
 import mysql.connector
 from dataclasses import dataclass
+from app.core.database import execute_query
+from typing import cast, Dict, Any
 
 @dataclass
 class SaveResult:
-    found_hash: str
+    found_hash: str | None
     status_code: int=200
 
-async def saveIntoDb(original: str, hashed: str, conn):
-
-    cursor = conn.cursor()
-    sql = "INSERT INTO users_urls (original_url, newurl) VALUES (%s, %s)"
+def saveIntoDb(original: str, hashed: str):
     
     try:
-        cursor.execute(sql, (original, hashed))
-        conn.commit()
+        result = execute_query(
+            "INSERT INTO users_urls (original_url, newurl) VALUES (%s, %s)",
+            (original, hashed)
+        )
+        return SaveResult(found_hash=hashed, status_code=201)
     except mysql.connector.Error as e:
 
+        # err 1062 = already exists in db
+        # else, some other error... 
+
         if(e.errno == 1062):
-            res = await lookForExisting(hashed, conn)
+            res = lookForExisting(hashed)
             if res:
-                print(hashed)
                 return SaveResult(found_hash=hashed, status_code=200)
         else:
             print(f"Error saving to DB: {e}")
-            conn.rollback()
-    finally:    
-        cursor.close()
+            return SaveResult(found_hash=None, status_code=999)
 
-async def lookIntoDb(url: str, conn):
+# Function to search into DB for the original_url after the GET
 
-    cursor = conn.cursor()
-    sql = "SELECT original_url FROM users_urls WHERE newurl = %s"
+def lookIntoDb(url: str):
 
-    q = cursor.execute(sql, (url,))
-    result = cursor.fetchone()
-    cursor.close()
+    result = execute_query(
+        "SELECT original_url FROM users_urls WHERE newurl = %s",
+        (url,),
+        fetchone=True
+    )
 
     if result:
-        return result[0]
+        # Casting the result_dict cuz Pylance was complaining about the dict.
+        result_dict = cast(Dict[str, Any], result)
+        return result_dict['original_url']
+
     return None
 
-async def lookForExisting(url: str, conn):
+def lookForExisting(url: str):
 
-    cursor = conn.cursor()
-    sql = "SELECT original_url FROM users_urls WHERE newurl = %s"
-
-    q = cursor.execute(sql, (url,))
-    result = cursor.fetchone()
-    cursor.close()
+    result = execute_query(
+        "SELECT original_url FROM users_urls WHERE newurl = %s",
+        (url,)
+    )
 
     if result:
-        return result[0]
+        print(result)
+        return result
     return None
