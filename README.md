@@ -9,7 +9,7 @@ A simple URL shortener API built with Python and FastAPI, using MySQL for data p
 
 **PROJECT STACK**
 
-[![STACK](https://skillicons.dev/icons?i=py,fastapi,html,css,vite,mysql,docker)](https://skillicons.dev)
+[![STACK](https://skillicons.dev/icons?i=py,fastapi,html,css,mysql,docker)](https://skillicons.dev)
 
 **FUTURE PLANS**
 - Improve error handling
